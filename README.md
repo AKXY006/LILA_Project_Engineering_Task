@@ -34,7 +34,7 @@ The repository already includes generated static data, so no raw dataset or Pyth
 
 ```bash
 git clone https://github.com/AKXY006/LILA_Project_Engineering_Task.git
-cd LILA_Project_Engineering_Task/lila-viz/frontend
+cd LILA_Project_Engineering_Task/frontend
 npm install
 npm run dev
 ```
@@ -51,7 +51,7 @@ The checked-in static app reads:
 ## Production Build
 
 ```bash
-cd lila-viz/frontend
+cd frontend
 npm run lint
 npm run build
 ```
@@ -65,7 +65,7 @@ This step is optional for using the submitted app. It is needed only when the so
 The raw input is outside this repository at `D:\player_data\player_data` in the submission environment. It contains `February_10` through `February_14` folders and the `minimaps` folder.
 
 ```bash
-cd lila-viz/pipeline
+cd pipeline
 npm install
 npm run build:data -- --data "D:/player_data/player_data"
 ```
