@@ -31,9 +31,10 @@ function lerp(a: number, b: number, t: number) {
 
 /** Interpolate a heatmap palette at 0..1 and return an rgba() string. */
 export function heatColor(value: number, opacity: number, type: HeatmapType): string {
-  if (value <= 0) return "rgba(0,0,0,0)";
+  const clamped = clamp(value, 0, 1);
+  if (clamped <= 0) return "rgba(0,0,0,0)";
   const palette = HEATMAP_PALETTES[type];
-  const scaled = clamp(value, 0, 1) * (palette.length - 1);
+  const scaled = clamped * (palette.length - 1);
   const index = Math.min(palette.length - 2, Math.floor(scaled));
   const t = scaled - index;
   const from = palette[index];
@@ -41,9 +42,25 @@ export function heatColor(value: number, opacity: number, type: HeatmapType): st
   const r = Math.round(lerp(from[0], to[0], t));
   const g = Math.round(lerp(from[1], to[1], t));
   const b = Math.round(lerp(from[2], to[2], t));
-  const alpha = opacity * (0.18 + 0.82 * Math.pow(value, 0.65));
+  const alpha = opacity * (0.18 + 0.82 * Math.pow(clamped, 0.65));
   return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
 }
+
+/** Interpolate a heatmap palette at 0..1 and return an rgba() string. */
+// export function heatColor(value: number, opacity: number, type: HeatmapType): string {
+//   if (value <= 0) return "rgba(0,0,0,0)";
+//   const palette = HEATMAP_PALETTES[type];
+//   const scaled = clamp(value, 0, 1) * (palette.length - 1);
+//   const index = Math.min(palette.length - 2, Math.floor(scaled));
+//   const t = scaled - index;
+//   const from = palette[index];
+//   const to = palette[index + 1];
+//   const r = Math.round(lerp(from[0], to[0], t));
+//   const g = Math.round(lerp(from[1], to[1], t));
+//   const b = Math.round(lerp(from[2], to[2], t));
+//   const alpha = opacity * (0.18 + 0.82 * Math.pow(value, 0.65));
+//   return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+// }
 
 export function quadrantPercentages(counts: QuadrantCounts): Record<keyof QuadrantCounts, number> {
   const total = counts.NW + counts.NE + counts.SW + counts.SE;

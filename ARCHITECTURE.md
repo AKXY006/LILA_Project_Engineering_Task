@@ -2,21 +2,20 @@
 
 ## Overview
 
-The Player Journey Visualization Tool is a full-stack web application with a **Python backend** (data processing) and a **Next.js frontend** (interactive visualization).
+The Player Journey Visualization Tool uses an offline **Node pipeline** for Parquet processing and a **static Next.js frontend** for interactive visualization.
 
 ```
-┌──────────────┐     HTTP/REST     ┌──────────────────┐     Parquet I/O     ┌──────────────┐
-│   Browser    │ ◄──────────────►  │  FastAPI Backend  │ ◄────────────────►  │  .nakama-0   │
-│  (Next.js)   │                   │  (Python)         │                     │  Parquet     │
-│  Canvas API  │                   │  pandas + pyarrow │                     │  Files       │
-└──────────────┘                   └──────────────────┘                     └──────────────┘
+┌──────────────┐     Static JSON     ┌──────────────┐     Parquet I/O     ┌──────────────┐
+│   Browser    │ ◄─────────────────  │  Next.js UI  │                     │  .nakama-0   │
+│  Canvas API  │                     │  / public    │ ◄────────────────►  │  Parquet     │
+└──────────────┘                     └──────────────┘     Node pipeline     └──────────────┘
 ```
 
 ## Why This Stack
 
 | Choice | Rationale |
 |--------|-----------|
-| **FastAPI + Python** | Parquet files need pyarrow/pandas. Python is the natural choice. FastAPI gives fast async REST APIs with auto-generated docs. |
+| **Node + hyparquet** | The pipeline is a small build step, so Node dependencies keep setup simple and produce static artifacts directly. hyparquet reads the extensionless Parquet files; sharp converts minimaps to WebP. |
 | **Next.js + React** | Modern component model, excellent TypeScript support, easy deployment to Vercel. |
 | **Tailwind CSS** | Dark-themed gaming UI built rapidly with utility classes. No custom CSS framework overhead. |
 | **Canvas API** | Rendering 1000+ position dots and paths per match. Canvas is significantly faster than SVG/DOM for this density of data. D3.js was considered but Canvas offers better raw performance for path rendering. |

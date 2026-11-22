@@ -1,75 +1,41 @@
 # Insights from LILA BLACK Player Data
 
-## Insight 1: Ambrose Valley Dominates — Potential Content Gap
+## Insight 1: Ambrose Valley carries most of the observed play
 
-### What caught my eye
-Ambrose Valley has dramatically more gameplay data than the other two maps combined. Looking at file counts:
-- **February 10**: 437 files
-- **February 11**: 293 files
-- **February 12**: 268 files
-- **February 13**: 166 files
-- **February 14**: 79 files (partial)
+**What caught my eye:** 566 of 796 matches (71.1%) are Ambrose Valley, compared with 171 Lockdown and 59 Grand Rift.
 
-Cross-referencing with map distribution, AmbroseValley appears in the vast majority of matches.
+**Evidence:** It accounts for 61,013 rows and 217 observed human IDs. Its Southwest and Northwest quadrants contain 36,180 of 48,754 all-player traffic samples (74.2%). This makes it both the primary balancing surface and the map with the strongest sample confidence.
 
-### Supporting evidence
-- The data folder sizes confirm it: Feb 10 has ~2.85 MB vs Feb 14 at ~488 KB
-- AmbroseValley has the most complex minimap (900-unit scale vs 581 for GrandRift)
-- Three minimap files exist (AmbroseValley PNG, GrandRift PNG, Lockdown JPG), but gameplay data is heavily skewed toward AmbroseValley
+**Actionable:** Validate the 566-match map-weighting hypothesis, then compare player retention and match quality with and without rotation weighting. Add a loot-quality and spawn fairness pass to Ambrose Valley first because it has the most impact.
 
-### Actionable items
-- **Metrics affected**: Map selection rate, queue times per map, player retention per map
-- **Actions**:
-  - Investigate if map rotation is weighted or if players are self-selecting AmbroseValley
-  - Consider incentivizing GrandRift and Lockdown play (bonus XP, exclusive loot)
-  - Review if Lockdown's smaller size creates an unsatisfying experience driving players away
+**Metrics:** map match share, map queue time, 30-day retention by map, and post-match abandonment.
 
-### Why a Level Designer should care
-If players overwhelmingly prefer one map, the other maps may have design issues — poor flow, unbalanced spawn points, or less interesting combat spaces. Understanding *why* AmbroseValley succeeds can inform design improvements on the other maps.
+**Why it matters:** Level changes need to be prioritized by actual exposure. Grand Rift's only 59 matches currently have too little signal for confident layout conclusions.
 
 ---
 
-## Insight 2: Storm Deaths Reveal Extraction Timing Issues
+## Insight 2: Human traffic and loot cluster in a few southwest/south zones
 
-### What caught my eye
-The `KilledByStorm` event type indicates players who failed to extract before the storm consumed them. These events, plotted on the minimap, reveal specific areas where players consistently die to the storm — suggesting the extraction routes from these zones may be too long or unclear.
+**What caught my eye:** On Ambrose Valley, the largest human-traffic and loot hotspots are near minimap pixels (408, 808), (360, 888), and (600, 568).
 
-### Supporting evidence
-- Storm death events exist alongside combat events, meaning some players die to storm *during* or *after* fights — they win the fight but lose to the timer
-- The storm moves in one direction (per game description: "one-directional storm pushes across the map"), so deaths should cluster on the side opposite to the storm's approach direction
-- By using the heatmap overlay with "Storm Deaths" filter, Level Designers can see the exact regions where this happens most
+**Evidence:** The (408, 808) cell has 484 human-traffic samples and 179 loot events; the (360, 888) cell has 385 human-traffic samples and 346 loot events. Human traffic in SW/NW is concentrated while the NE quadrant receives only 3,747 of 36,189 human samples (10.4%).
 
-### Actionable items
-- **Metrics affected**: Extraction success rate, average survival time, player frustration/churn
-- **Actions**:
-  - Add more extraction points near storm death hotspots
-  - Add visual/audio cues warning players they're in the storm's path
-  - Consider slowing storm speed in problem areas or adding temporary safe zones
-  - Tune storm timing so post-combat players have a reasonable extraction window
+**Actionable:** Inspect these areas for cover, rotation options, and loot balance. Test whether NE should receive denser looting or safer traversal, and move or split loot if the concentrated SW loot point is creating predictable fights.
 
-### Why a Level Designer should care
-Storm deaths that feel "unfair" drive player frustration. If players consistently die to storm in specific map areas, the level layout may be funneling them into dead-end zones with no viable extraction path.
+**Metrics:** loot acquisition per player, time-to-first encounter, deaths per 10 minutes, quadrant utilization, and player concentration entropy.
+
+**Why it matters:** Persistent low-use and high-use zones can indicate strong map funnels or underused geometry. Designers can correct imbalance before tuning the whole map.
 
 ---
 
-## Insight 3: Bot-to-Human Ratio Varies Significantly — Potential Matchmaking Insight
+## Insight 3: A small number of death and storm hotspots are identifiable
 
-### What caught my eye
-Matches have highly variable bot-to-human ratios. Some matches have 10+ human players with 30-40 bots, while others may have only 2-3 humans filling the rest with bots.
+**What caught my eye:** The all-death heatmap concentrates around Ambrose Valley cells (424, 488), (360, 568), and (424, 504), while Lockdown has 17 storm deaths but Grand Rift only five.
 
-### Supporting evidence
-- File naming convention: UUID user_ids = humans, numeric user_ids = bots
-- Each match file count varies: a match with 50 participants (10 human + 40 bot) generates 50 files
-- The match list in the visualization tool shows human_players and bot_players counts per match, revealing the variance
-- Matches with very low human counts likely indicate off-peak hours or matchmaking fill
+**Evidence:** Those three Ambrose Valley cells contain 42 combined death events, led by 16 at (424, 488). The dataset has 39 total storm deaths: 17 Ambrose Valley, 17 Lockdown, and 5 Grand Rift.
 
-### Actionable items
-- **Metrics affected**: Player engagement, perceived match quality, K/D ratio inflation (easy bot kills)
-- **Actions**:
-  - Set a minimum human player threshold before starting a match
-  - Adjust bot difficulty based on the human-to-bot ratio (fewer humans → harder bots)
-  - Track if high-bot matches correlate with lower player return rates
-  - Consider showing bot ratio to players post-match for transparency
+**Actionable:** Place cover and extraction cues around repeated death zones, and compare storm-death location by match phase. If storm deaths repeatedly occur far from extraction routes, adjust extraction access or warning timing rather than adding more loot.
 
-### Why a Level Designer should care
-The bot population affects how the map "plays" — bots may not use the same paths, avoid the same chokepoints, or create the same combat dynamics as humans. If Level Designers test their maps assuming human-like behavior but most players encounter bot-heavy lobbies, the designed experience won't match reality.
+**Metrics:** storm-death rate, extraction success, match survival time, and death location by match phase.
+
+**Why it matters:** Repeated storm deaths are more actionable than isolated combat deaths because they indicate whether the map communicates danger and supports viable extraction routes.

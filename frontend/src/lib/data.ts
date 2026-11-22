@@ -1,6 +1,6 @@
 import type { HeatmapFile, Manifest, MapConfig, MatchData } from "./types";
 
-const DATA_BASE = process.env.NEXT_PUBLIC_DATA_BASE || "/data";
+const DATA_BASE = process.env.NEXT_PUBLIC_DATA_BASE || "data";
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, { cache: "force-cache" });

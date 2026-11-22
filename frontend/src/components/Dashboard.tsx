@@ -28,7 +28,6 @@ import {
   User,
 } from "lucide-react";
 import {
-  DAY_LABELS,
   EVENT_META,
   EVENT_ORDER,
   HEATMAP_META,
@@ -57,7 +56,6 @@ import type {
   HeatmapType,
   Hotspot,
   MapReport,
-  MatchData,
   MatchSummary,
   PlayerJourney,
   QuadrantCounts,
@@ -231,16 +229,18 @@ export default function Dashboard() {
     const urlDay = params.get("day");
     const urlMatch = params.get("match");
     const urlHeat = params.get("heat");
-    if (urlMap && (MAP_IDS as readonly string[]).includes(urlMap)) setMapId(urlMap);
-    if (urlDay && /^February_\d+$/.test(urlDay)) setDay(urlDay);
-    if (urlHeat && (HEATMAP_ORDER as readonly string[]).includes(urlHeat)) {
-      setHeatmapType(urlHeat as HeatmapType);
-    }
-    if (urlMatch) {
-      setSelectedMatch(urlMatch);
-      setShowHeatmap(false);
-    }
-    setUrlReady(true);
+    queueMicrotask(() => {
+      if (urlMap && (MAP_IDS as readonly string[]).includes(urlMap)) setMapId(urlMap);
+      if (urlDay && /^February_\d+$/.test(urlDay)) setDay(urlDay);
+      if (urlHeat && (HEATMAP_ORDER as readonly string[]).includes(urlHeat)) {
+        setHeatmapType(urlHeat as HeatmapType);
+      }
+      if (urlMatch) {
+        setSelectedMatch(urlMatch);
+        setShowHeatmap(false);
+      }
+      setUrlReady(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -253,11 +253,6 @@ export default function Dashboard() {
     const next = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState(null, "", next);
   }, [urlReady, mapId, day, selectedMatch, heatmapType]);
-
-  // Keep the map selector in sync with the selected match.
-  useEffect(() => {
-    if (match) setMapId(match.mapId);
-  }, [match]);
 
   // ── Derived lists ───────────────────────────────────────────────────────
   const filteredMatches = useMemo(() => {

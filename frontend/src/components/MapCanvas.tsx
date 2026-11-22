@@ -159,7 +159,7 @@ export default function MapCanvas({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const images = useRef<Record<string, HTMLImageElement>>({});
   const dragRef = useRef<{ x: number; y: number; tx: number; ty: number; moved: boolean } | null>(null);
-  const [imageVersion, setImageVersion] = useState(0);
+  const [, setImageVersion] = useState(0);
   const [view, setView] = useState<View>({ scale: 1, tx: 0, ty: 0 });
   const [hover, setHover] = useState<HoverInfo | null>(null);
 
@@ -181,6 +181,8 @@ export default function MapCanvas({
   }, [map]);
 
   useEffect(() => {
+    // Reset the viewport when the map changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setView({ scale: 1, tx: 0, ty: 0 });
     setHover(null);
   }, [map?.id]);
@@ -188,6 +190,7 @@ export default function MapCanvas({
   useEffect(() => {
     if (!focusTarget) return;
     const scale = 4;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setView(
       clampView({
         scale,
@@ -422,7 +425,6 @@ export default function MapCanvas({
     showPaths,
     view,
     visibleEvents,
-    imageVersion,
   ]);
 
   useEffect(() => {
@@ -442,6 +444,7 @@ export default function MapCanvas({
       const dy = event.clientY - drag.y;
       if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
       const rect = event.currentTarget.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
       setView((previous) =>
         clampView({
           scale: previous.scale,
@@ -454,6 +457,26 @@ export default function MapCanvas({
     }
     updateHover(event);
   };
+
+  // const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
+  //   const drag = dragRef.current;
+  //   if (drag) {
+  //     const dx = event.clientX - drag.x;
+  //     const dy = event.clientY - drag.y;
+  //     if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+  //     const rect = event.currentTarget.getBoundingClientRect();
+  //     setView((previous) =>
+  //       clampView({
+  //         scale: previous.scale,
+  //         tx: drag.tx + (dx * SIZE) / rect.width,
+  //         ty: drag.ty + (dy * SIZE) / rect.height,
+  //       })
+  //     );
+  //     setHover(null);
+  //     return;
+  //   }
+  //   updateHover(event);
+  // };
 
   const handlePointerUp = () => {
     dragRef.current = null;
@@ -488,7 +511,7 @@ export default function MapCanvas({
   };
 
   const hoverMeta = hover ? EVENT_META[hover.event.type] : null;
-  const tooltipLeft = hover ? clamp(hover.screenX, 84, (wrapperRef.current?.clientWidth ?? 800) - 84) : 0;
+  const tooltipLeft = hover ? clamp(hover.screenX, 84, 716) : 0;
   const tooltipTop = hover ? Math.max(64, hover.screenY) : 0;
 
   const zoomLabel = useMemo(() => `${view.scale.toFixed(1)}×`, [view.scale]);

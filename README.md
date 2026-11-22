@@ -2,6 +2,8 @@
 
 A web-based visualization tool for Level Designers to explore player behavior in LILA BLACK, an extraction shooter game.
 
+**Live deployment:** https://akxy006.github.io/LILA_Project_Engineering_Task/
+
 ![Tech Stack](https://img.shields.io/badge/Frontend-Next.js%2016%20+%20Tailwind%20CSS-blue)
 ![Tech Stack](https://img.shields.io/badge/Backend-FastAPI%20+%20Python-green)
 ![Data](https://img.shields.io/badge/Data-Apache%20Parquet-orange)

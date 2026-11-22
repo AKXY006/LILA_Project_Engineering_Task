@@ -19,8 +19,10 @@ export function usePlayback(duration: number, resetKey?: string) {
   }, [duration]);
 
   useEffect(() => {
-    playheadRef.current = duration;
-    setPlayheadState(duration);
+    playheadRef.current = 0;
+    // Resetting playback to the start is required when a match changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPlayheadState(0);
     setIsPlaying(false);
   }, [duration, resetKey]);
 
@@ -63,9 +65,13 @@ export function usePlayback(duration: number, resetKey?: string) {
   }, [isPlaying, play]);
 
   const seek = useCallback((value: number) => {
-    setIsPlaying(false);
     setPlayhead(value);
   }, [setPlayhead]);
+
+  // const seek = useCallback((value: number) => {
+  //   setIsPlaying(false);
+  //   setPlayhead(value);
+  // }, [setPlayhead]);
 
   return {
     playhead,
