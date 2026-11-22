@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+backend/__pycache__/
+__pycache__/
+
+# Environment
+.env
+.env.local
+frontend/.env.local
+
+# Build
+frontend/.next/
+frontend/out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data (too large for git)
+player_data/
+
+# Python
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+node_modules/
+node_modules.zip
+.next/
+

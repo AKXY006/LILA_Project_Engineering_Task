@@ -1,0 +1,16 @@
+{
+  "name": "lila-viz-pipeline",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Parquet -> static JSON pipeline for the LILA BLACK player journey visualizer",
+  "scripts": {
+    "build": "node build-data.mjs",
+    "build:data": "node build-data.mjs"
+  },
+  "dependencies": {
+    "hyparquet": "^1.33.1",
+    "hyparquet-compressors": "^1.1.3",
+    "sharp": "^0.35.5"
+  }
+}

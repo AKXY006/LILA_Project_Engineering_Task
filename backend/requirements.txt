@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+pandas
+pyarrow
+numpy
+Pillow
+scipy
+python-multipart
