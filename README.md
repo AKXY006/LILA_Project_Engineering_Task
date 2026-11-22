@@ -1,152 +1,134 @@
 # LILA BLACK — Player Journey Visualization Tool
 
-A web-based visualization tool for Level Designers to explore player behavior in LILA BLACK, an extraction shooter game.
+A browser-based tool for Level Designers to explore LILA BLACK player movement, combat, loot, and storm deaths on the three production minimaps.
 
 **Live deployment:** https://lila-black-viz-iota.vercel.app
 
-![Tech Stack](https://img.shields.io/badge/Frontend-Next.js%2016%20+%20Tailwind%20CSS-blue)
-![Tech Stack](https://img.shields.io/badge/Backend-FastAPI%20+%20Python-green)
-![Data](https://img.shields.io/badge/Data-Apache%20Parquet-orange)
+## Tech Stack
 
-## 🎮 Features
+| Layer | Technology | Reason |
+|---|---|---|
+| Frontend | Next.js 16, React 19, TypeScript | Static export and typed component structure |
+| Visualization | HTML5 Canvas | Efficient rendering of thousands of positions, paths, and markers |
+| State/query | TanStack React Query | Cached loading of static match and heatmap JSON |
+| Styling | Tailwind CSS 4 | Fast, consistent product UI |
+| Data pipeline | Node.js, hyparquet | Reads extensionless Apache Parquet files and creates compact static JSON |
+| Image pipeline | Sharp | Converts source minimaps to optimized 2048 px WebP images |
+| Hosting | Vercel | Production static hosting with HTTPS and shareable URLs |
 
-- **Player Journey Visualization** — See movement paths plotted on actual game minimaps with proper coordinate mapping
-- **Human vs Bot Distinction** — Humans shown in blue, bots in yellow, clearly distinguishable
-- **Event Markers** — Kills (💀), Deaths (☠️), Bot Kills (🤖), Storm Deaths (⛈️), and Loot (📦) as distinct colored markers
-- **Filtering** — Filter by map (AmbroseValley, GrandRift, Lockdown), date (Feb 10-14), and match
-- **Timeline/Playback** — Watch a match unfold over time with play/pause controls and speed adjustment
-- **Heatmap Overlays** — Visualize kill zones, death zones, storm deaths, loot locations, and traffic density
-- **Match Statistics** — Detailed per-match stats including player counts, kill/death ratios, and event breakdowns
+There is no always-on backend API. The pipeline processes the raw data once, and the frontend reads static files from `frontend/public/data`.
 
-## 🛠 Tech Stack
+## Features
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| **Frontend** | Next.js 16, React 19, TypeScript | Modern app framework with server components, excellent DX |
-| **Styling** | Tailwind CSS 4 | Utility-first, rapid UI development, dark theme built-in |
-| **Data Viz** | HTML5 Canvas API | High-performance rendering for thousands of data points |
-| **State** | TanStack React Query | Caching, background refetching, loading states |
-| **Backend** | FastAPI (Python) | Native Python data science ecosystem (pandas, pyarrow) |
-| **Data** | Apache Parquet + pandas | Efficient columnar format, native parquet support |
-| **Icons** | Lucide React | Clean, consistent icon set |
+- Human and bot player journeys on the correct minimap
+- `Position`/`BotPosition` trails, with playhead-based playback
+- Distinct `Kill`, `Killed`, `BotKill`, `BotKilled`, `Loot`, and `KilledByStorm` markers
+- Map, date, match-ID search, and shareable URL filters
+- Playback controls, scrubbing, restart, skip, and 1x-50x speeds
+- Traffic, human traffic, kill, death, storm-death, and loot heatmaps
+- Zoom, pan, reset, hotspot labels, quadrant grid, player focus, and PNG export
 
-## 📋 Prerequisites
+## Quick Start
 
-- **Python 3.10+** (with pip)
-- **Node.js 18+** (with npm)
-- **Git**
-
-## 🚀 Setup
-
-### 1. Clone the Repository
+The repository already includes generated static data, so no raw dataset or Python environment is required to run the evaluator build.
 
 ```bash
-git clone <your-repo-url>
-cd lila-viz
-```
-
-### 2. Backend Setup
-
-```bash
-# Install Python dependencies
-pip install -r backend/requirements.txt
-
-# Set data directory (edit .env or use environment variable)
-# Default: D:/player_data/player_data
-cp backend/.env.example backend/.env
-```
-
-### 3. Frontend Setup
-
-```bash
-cd frontend
+git clone https://github.com/AKXY006/LILA_Project_Engineering_Task.git
+cd LILA_Project_Engineering_Task/lila-viz/frontend
 npm install
-```
-
-### 4. Configure Environment
-
-Create `frontend/.env.local`:
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
-
-Create `backend/.env`:
-```
-DATA_DIR=D:/player_data/player_data
-HOST=0.0.0.0
-PORT=8000
-```
-
-## ▶️ Running Locally
-
-**Terminal 1 — Backend:**
-```bash
-cd backend
-python main.py
-# API running at http://localhost:8000
-```
-
-**Terminal 2 — Frontend:**
-```bash
-cd frontend
 npm run dev
-# App running at http://localhost:3000
 ```
 
-Open **http://localhost:3000** in your browser.
+Open `http://localhost:3000`.
 
-## 📁 Project Structure
+The checked-in static app reads:
 
+- `frontend/public/data/manifest.json`
+- `frontend/public/data/matches/<match-id>.json`
+- `frontend/public/data/heatmaps/<map-id>.json`
+- `frontend/public/minimaps/<map-name>_Minimap.webp`
+
+## Production Build
+
+```bash
+cd lila-viz/frontend
+npm run lint
+npm run build
 ```
+
+Next.js exports the deployable site to `frontend/out`.
+
+## Rebuilding Data from Raw Parquet
+
+This step is optional for using the submitted app. It is needed only when the source telemetry changes or the static files must be regenerated.
+
+The raw input is outside this repository at `D:\player_data\player_data` in the submission environment. It contains `February_10` through `February_14` folders and the `minimaps` folder.
+
+```bash
+cd lila-viz/pipeline
+npm install
+npm run build:data -- --data "D:/player_data/player_data"
+```
+
+Alternatively, set `DATA_DIR`:
+
+```bash
+DATA_DIR="D:/player_data/player_data" npm run build:data
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:DATA_DIR = "D:\player_data\player_data"
+npm run build:data
+```
+
+The pipeline writes generated match JSON and heatmaps into `frontend/public/data`, and minimized minimaps into `frontend/public/minimaps`.
+
+## Environment Variables
+
+No environment variable is required for the normal static build.
+
+| Variable | Used by | Default | Purpose |
+|---|---|---|---|
+| `NEXT_PUBLIC_DATA_BASE` | Frontend | `data` | Optional alternate base path for static JSON |
+| `DATA_DIR` | Pipeline | `../player_data` when present | Source folder containing February folders and minimaps |
+| `OUT_DIR` | Pipeline | `frontend/public` | Optional generated-artifact destination |
+
+For a subdirectory deployment, set `NEXT_PUBLIC_DATA_BASE` carefully or keep the default relative `data` path.
+
+## Using the Tool
+
+1. Select Ambrose Valley, Grand Rift, or Lockdown.
+2. Optionally filter the overview by February 10-14.
+3. Choose a heatmap: all traffic, human traffic, kills, deaths, storm deaths, or loot.
+4. Use the layers panel to show/hide humans, bots, trails, event markers, hotspots, or the quadrant grid.
+5. Select a match from the match list. The map, timeline, and player summary switch to that match.
+6. Press play or scrub the timeline. The trails and event markers appear only through the current playhead.
+7. Click a journey in the right panel to isolate that player and zoom to their latest position.
+8. Use the canvas controls to zoom, pan, reset the view, or export the current PNG.
+9. Use **Share view** to copy the URL, preserving map, date, match, and heatmap selections.
+
+## Project Structure
+
+```text
 lila-viz/
-├── backend/
-│   ├── main.py              # FastAPI server — data loading, processing, API endpoints
-│   ├── requirements.txt     # Python dependencies
-│   ├── .env                 # Environment config
-│   └── .env.example
+├── pipeline/
+│   └── build-data.mjs       # Parquet, coordinate, heatmap, and image processing
 ├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── page.tsx     # Entry point
-│   │   │   ├── layout.tsx   # Root layout
-│   │   │   └── globals.css  # Global styles + Tailwind config
-│   │   ├── components/
-│   │   │   └── Dashboard.tsx  # Main visualization dashboard
-│   │   └── lib/
-│   │       ├── api.ts       # API client + TypeScript types
-│   │       ├── constants.ts # Event colors, labels, heatmap config
-│   │       └── providers.tsx # React Query provider
-│   ├── .env.local           # Frontend env
-│   ├── next.config.ts
-│   └── package.json
+│   ├── public/
+│   │   ├── data/            # Generated manifest, matches, and heatmaps
+│   │   └── minimaps/        # Optimized minimap images
+│   └── src/
+│       ├── app/             # Next.js entry and layout
+│       ├── components/      # Dashboard and Canvas visualization
+│       └── lib/             # Static data loading, geometry, types, playback
 ├── ARCHITECTURE.md
 ├── INSIGHTS.md
 └── README.md
 ```
 
-## 🔧 Environment Variables
+## Documentation
 
-### Backend (`backend/.env`)
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATA_DIR` | `D:/player_data/player_data` | Path to the parquet data files |
-| `HOST` | `0.0.0.0` | Server host |
-| `PORT` | `8000` | Server port |
-
-### Frontend (`frontend/.env.local`)
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend API URL |
-
-## 📡 API Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/stats` | Overall dataset statistics |
-| `GET /api/filters` | Available filter options |
-| `GET /api/matches` | List matches with summary (filterable by map/day) |
-| `GET /api/match/{id}` | Full match data with all player events |
-| `GET /api/match/{id}/timeline` | Match data grouped by time steps for playback |
-| `GET /api/heatmap` | Heatmap grid data for a map/event type |
-| `GET /api/minimap/{map_id}` | Serve minimap image |
-| `GET /api/map-config` | Map coordinate configuration |
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — architecture, data flow, coordinate mapping, assumptions, and tradeoffs
+- [INSIGHTS.md](./INSIGHTS.md) — three evidence-backed level-design findings with actionable metrics

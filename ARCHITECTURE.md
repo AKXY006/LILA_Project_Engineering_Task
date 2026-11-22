@@ -25,19 +25,20 @@ The Player Journey Visualization Tool uses an offline **Node pipeline** for Parq
 
 ```
 1. Parquet Files (.nakama-0)
-   ↓  pyarrow.parquet.read_table()
-2. pandas DataFrames (cached in memory via @lru_cache)
+   ↓  hyparquet.parquetReadObjects()
+2. Node pipeline
+   ↓  Event decoding: Uint8Array/bytes → UTF-8
+   ↓  Bot detection: numeric user_id regex
    ↓  Coordinate conversion: world_to_minimap(x, z, map_id)
-   ↓  Event decoding: bytes → utf-8 string
-   ↓  Bot detection: regex match on user_id
-3. REST API (FastAPI endpoints)
-   ↓  JSON response
-4. React Query Cache (browser)
+   ↓  Match grouping, playback JSON, heatmaps, and WebP minimaps
+3. Static files in frontend/public
+   ↓  Fetch by TanStack React Query
+4. Browser state/cache
    ↓  Component state
-5. Canvas Rendering (1024x1024 pixel canvas)
+5. Canvas rendering (1024x1024 logical canvas)
    - Minimap image as background
    - Player paths as stroked lines
-   - Event markers as filled circles
+   - Distinct event markers
    - Heatmap as semi-transparent grid overlay
 ```
 
@@ -72,7 +73,7 @@ Step 3: Pixel → Canvas (scaled to canvas display size)
 | GrandRift | 581 | -290 | -290 |
 | Lockdown | 1000 | -500 | -500 |
 
-The coordinate conversion happens **server-side** when data is first loaded. Pre-computed `pixel_x` and `pixel_y` columns are added to the DataFrame so the frontend receives ready-to-plot coordinates.
+The coordinate conversion happens in the Node build pipeline. Each position and event stores ready-to-plot logical 1024×1024 pixel coordinates in the generated JSON. The browser only scales those coordinates to its displayed canvas size.
 
 ## Assumptions
 
@@ -86,8 +87,8 @@ The coordinate conversion happens **server-side** when data is first loaded. Pre
 
 | Decision | Alternative Considered | Why This Choice |
 |----------|----------------------|-----------------|
-| Server-side data processing | Client-side with DuckDB-WASM | Server caching is simpler; ~89K rows loads fast in pandas; avoids shipping 15MB+ of parquet to browser |
+| Build-time Node pipeline | Runtime backend or DuckDB-WASM | Static JSON removes server operations; only the needed match and heatmap data is downloaded |
 | Canvas rendering | SVG with D3.js | Canvas handles 1000+ elements per frame without DOM overhead; SVG would choke on position trail rendering |
-| Full data pre-load on startup | Lazy loading per request | With ~89K total rows, loading everything into memory (~50MB) is fast and avoids repeated disk I/O |
-| Timeline by time steps | Per-event streaming | Fixed time steps (5s default) give consistent playback speed; per-event would cause variable frame pacing |
-| Gaussian-smoothed heatmap | Raw density grid | Gaussian smoothing reveals spatial patterns that raw pixel counts miss; sigma=2.5 balances detail and readability |
+| Per-match static JSON | One large combined dataset | Large manifest plus small selected match payload keeps overview filters fast and match replay focused |
+| Continuous playback slider | Fixed time steps | Continuous seconds give stable scrubbing and let the slider land anywhere within the match |
+| Gaussian-smoothed heatmap | Raw density grid | Gaussian smoothing reveals spatial patterns that raw pixel counts miss; sigma=1.8 balances detail and readability |
