@@ -46,6 +46,7 @@ interface MapCanvasProps {
   heatmapOpacity: number;
   showHumans: boolean;
   showBots: boolean;
+  showPositions: boolean;
   showPaths: boolean;
   showEvents: boolean;
   visibleEvents: Set<EventType>;
@@ -144,6 +145,7 @@ export default function MapCanvas({
   heatmapOpacity,
   showHumans,
   showBots,
+  showPositions,
   showPaths,
   showEvents,
   visibleEvents,
@@ -350,31 +352,55 @@ export default function MapCanvas({
           if (index === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = color;
-        ctx.globalAlpha = dimmed ? 0.06 : isFocused ? 0.95 : player.isBot ? 0.34 : 0.48;
-        ctx.lineWidth = (isFocused ? 2.4 : 1.25) / view.scale;
+        ctx.globalAlpha = dimmed ? 0.08 : isFocused ? 1 : 0.88;
+        ctx.lineWidth = (isFocused ? 4.2 : 3.2) / view.scale;
         ctx.lineJoin = "round";
         ctx.lineCap = "round";
+        ctx.setLineDash(player.isBot ? [7 / view.scale, 4 / view.scale] : []);
+        ctx.strokeStyle = "rgba(5,8,14,0.88)";
+        ctx.stroke();
+        ctx.lineWidth = (isFocused ? 2.8 : player.isBot ? 1.8 : 2) / view.scale;
+        ctx.strokeStyle = color;
         if (isFocused) {
           ctx.shadowColor = color;
-          ctx.shadowBlur = 8 / view.scale;
+          ctx.shadowBlur = 10 / view.scale;
         }
         ctx.stroke();
         ctx.shadowBlur = 0;
+        ctx.setLineDash([]);
         ctx.globalAlpha = 1;
       }
 
-      if (endIndex >= 0) {
+      if (showPositions && endIndex >= 0) {
         const [, x, y] = player.path[endIndex];
-        const radius = (isFocused ? 6 : player.isBot ? 3.2 : 4.4) / view.scale;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = color;
         ctx.globalAlpha = dimmed ? 0.18 : 1;
-        ctx.fill();
-        ctx.lineWidth = 1.6 / view.scale;
-        ctx.strokeStyle = "#ffffff";
-        ctx.stroke();
+        if (player.isBot) {
+          const radius = (isFocused ? 7 : 5.2) / view.scale;
+          ctx.beginPath();
+          ctx.moveTo(x, y - radius);
+          ctx.lineTo(x + radius, y);
+          ctx.lineTo(x, y + radius);
+          ctx.lineTo(x - radius, y);
+          ctx.closePath();
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.lineWidth = 1.7 / view.scale;
+          ctx.strokeStyle = "#fff7ed";
+          ctx.stroke();
+        } else {
+          const radius = (isFocused ? 6.5 : 4.8) / view.scale;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.lineWidth = 1.7 / view.scale;
+          ctx.strokeStyle = "#e0f2fe";
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(x, y, 1.2 / view.scale, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+        }
         ctx.globalAlpha = 1;
       }
 
@@ -422,6 +448,7 @@ export default function MapCanvas({
     showHeatmap,
     showHotspots,
     showHumans,
+    showPositions,
     showPaths,
     view,
     visibleEvents,
@@ -557,7 +584,21 @@ export default function MapCanvas({
         </IconButton>
       </div>
 
-      <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2 rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[10px] text-zinc-400 backdrop-blur">
+      {match ? (
+        <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-3 rounded-xl border border-white/10 bg-[#080b11]/85 px-3 py-2 text-[10px] shadow-lg shadow-black/30 backdrop-blur">
+          <span className="flex items-center gap-1.5 font-medium text-sky-200">
+            <span className="h-2 w-2 rounded-full border border-sky-100 bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.65)]" />
+            Human · solid
+          </span>
+          <span className="h-4 w-px bg-white/10" />
+          <span className="flex items-center gap-1.5 font-medium text-amber-200">
+            <span className="h-2 w-2 rotate-45 border border-amber-100 bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+            Bot · dashed
+          </span>
+        </div>
+      ) : null}
+
+      <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2 rounded-full border border-white/10 bg-black/65 px-2.5 py-1.5 text-[10px] text-zinc-400 backdrop-blur">
         <Maximize2 className="h-3 w-3" />
         <span>Scroll to zoom · drag to pan</span>
       </div>

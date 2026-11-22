@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Clock,
   Crosshair,
+  Eye,
+  EyeOff,
   Flame,
   Gauge,
   Layers,
@@ -161,6 +163,66 @@ function StatTile({
   );
 }
 
+function ActorLayerCard({
+  label,
+  count,
+  visible,
+  color,
+  icon,
+  onToggle,
+}: {
+  label: string;
+  count: number;
+  visible: boolean;
+  color: string;
+  icon: ReactNode;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={visible}
+      aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()} on map`}
+      onClick={onToggle}
+      className={`group relative min-w-0 overflow-hidden rounded-xl border p-2.5 text-left transition-all hover:-translate-y-0.5 ${
+        visible ? "shadow-lg shadow-black/10" : "opacity-60 hover:opacity-90"
+      }`}
+      style={{
+        borderColor: visible ? `${color}55` : "rgba(255,255,255,0.08)",
+        background: visible
+          ? `linear-gradient(145deg, ${color}14, rgba(255,255,255,0.025) 72%)`
+          : "rgba(255,255,255,0.02)",
+      }}
+    >
+      <span
+        className="absolute inset-y-2 left-0 w-0.5 rounded-r-full transition-opacity"
+        style={{ backgroundColor: color, opacity: visible ? 1 : 0.25 }}
+      />
+      <span className="flex items-center justify-between gap-1">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg"
+            style={{ color, backgroundColor: `${color}1c` }}
+          >
+            {icon}
+          </span>
+          <span className="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-300">
+            {label}
+          </span>
+        </span>
+        {visible ? <Eye className="h-3 w-3 shrink-0" style={{ color }} /> : <EyeOff className="h-3 w-3 shrink-0 text-zinc-600" />}
+      </span>
+      <span className="mt-2 flex items-baseline gap-1.5">
+        <span className="text-xl font-semibold leading-none tabular-nums text-zinc-100">{formatCompact(count)}</span>
+        <span className="text-[9px] uppercase tracking-wider text-zinc-600">players</span>
+      </span>
+      <span className="mt-1.5 block text-[9px] font-medium" style={{ color: visible ? color : "#71717a" }}>
+        {visible ? "VISIBLE ON MAP" : "HIDDEN FROM MAP"}
+      </span>
+    </button>
+  );
+}
+
 export default function Dashboard() {
   const [mapId, setMapId] = useState<string>(DEFAULT_MAP);
   const [day, setDay] = useState<string>("");
@@ -173,6 +235,7 @@ export default function Dashboard() {
 
   const [showHumans, setShowHumans] = useState(true);
   const [showBots, setShowBots] = useState(true);
+  const [showPositions, setShowPositions] = useState(true);
   const [showPaths, setShowPaths] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
   const [visibleEvents, setVisibleEvents] = useState<Set<EventType>>(new Set(ALL_EVENTS));
@@ -524,71 +587,154 @@ export default function Dashboard() {
             ) : null}
           </div>
 
-          {/* Visibility */}
+          {/* Layers */}
           <div className="border-b border-border p-4">
-            <SectionTitle>Layers</SectionTitle>
-            <div className="space-y-0.5">
-              <Toggle
+            <SectionTitle
+              right={
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowHumans(true);
+                    setShowBots(true);
+                    setShowPositions(true);
+                    setShowPaths(true);
+                    setShowEvents(true);
+                    setShowGrid(false);
+                    setShowHotspots(true);
+                    setVisibleEvents(new Set(ALL_EVENTS));
+                  }}
+                  className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-400 transition-colors hover:border-accent/40 hover:text-zinc-100"
+                >
+                  Reset
+                </button>
+              }
+            >
+              Map layers
+            </SectionTitle>
+
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-zinc-600">
+                Player types
+              </span>
+              <span className="text-[9px] tabular-nums text-zinc-600">
+                {Number(showHumans) + Number(showBots)} / 2 visible
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <ActorLayerCard
                 label="Humans"
-                hint={match ? `${match.humans} in match` : undefined}
-                icon={<span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PLAYER_COLORS.human }} />}
-                checked={showHumans}
-                onChange={setShowHumans}
+                count={match?.humans ?? report?.humans ?? manifest?.dataset.humans ?? 0}
+                visible={showHumans}
+                color={PLAYER_COLORS.human}
+                icon={<User className="h-3.5 w-3.5" />}
+                onToggle={() => setShowHumans((value) => !value)}
               />
-              <Toggle
+              <ActorLayerCard
                 label="Bots"
-                hint={match ? `${match.bots} in match` : undefined}
-                icon={<span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PLAYER_COLORS.bot }} />}
-                checked={showBots}
-                onChange={setShowBots}
-              />
-              <Toggle
-                label="Movement trails"
-                icon={<Route className="h-3.5 w-3.5 text-zinc-500" />}
-                checked={showPaths}
-                onChange={setShowPaths}
-              />
-              <Toggle
-                label="Event markers"
-                icon={<Target className="h-3.5 w-3.5 text-zinc-500" />}
-                checked={showEvents}
-                onChange={setShowEvents}
-              />
-              <Toggle
-                label="Quadrant grid"
-                icon={<Layers className="h-3.5 w-3.5 text-zinc-500" />}
-                checked={showGrid}
-                onChange={setShowGrid}
-              />
-              <Toggle
-                label="Top hotspots"
-                icon={<Flame className="h-3.5 w-3.5 text-zinc-500" />}
-                checked={showHotspots}
-                onChange={setShowHotspots}
+                count={match?.bots ?? report?.bots ?? manifest?.dataset.bots ?? 0}
+                visible={showBots}
+                color={PLAYER_COLORS.bot}
+                icon={<Bot className="h-3.5 w-3.5" />}
+                onToggle={() => setShowBots((value) => !value)}
               />
             </div>
 
+            <div className="mb-2 mt-4 flex items-center justify-between">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-zinc-600">
+                Overlays
+              </span>
+              <span className="text-[9px] text-zinc-600">Turn layers on or off</span>
+            </div>
+            <div className="space-y-1">
+              <Toggle
+                label="Player positions"
+                hint="Current position markers"
+                icon={<Crosshair className="h-3.5 w-3.5" />}
+                checked={showPositions}
+                onChange={setShowPositions}
+                accent="#e2e8f0"
+              />
+              <Toggle
+                label="Movement trails"
+                hint="Solid human · dashed bot"
+                icon={<Route className="h-3.5 w-3.5" />}
+                checked={showPaths}
+                onChange={setShowPaths}
+                accent={PLAYER_COLORS.human}
+              />
+              <Toggle
+                label="Event markers"
+                hint={`${visibleEvents.size} of ${EVENT_ORDER.length} event types`}
+                icon={<Target className="h-3.5 w-3.5" />}
+                checked={showEvents}
+                onChange={setShowEvents}
+                accent="#a78bfa"
+              />
+              <Toggle
+                label="Quadrant grid"
+                hint="Map orientation and zones"
+                icon={<Layers className="h-3.5 w-3.5" />}
+                checked={showGrid}
+                onChange={setShowGrid}
+                accent="#c4b5fd"
+              />
+              {!match ? (
+                <Toggle
+                  label="Top hotspots"
+                  hint="Most active map locations"
+                  icon={<Flame className="h-3.5 w-3.5" />}
+                  checked={showHotspots}
+                  onChange={setShowHotspots}
+                  accent="#fb923c"
+                />
+              ) : null}
+            </div>
+
             {showEvents ? (
-              <div className="mt-2 space-y-1 border-t border-border/60 pt-2">
-                {EVENT_ORDER.map((type) => {
-                  const meta = EVENT_META[type];
-                  const checked = visibleEvents.has(type);
-                  return (
-                    <label
-                      key={type}
-                      className="flex cursor-pointer items-center gap-2 py-0.5 text-[11px] text-zinc-400 hover:text-zinc-200"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleEvent(type)}
-                        className="accent-accent"
-                      />
-                      <MarkerGlyph type={type} size={12} />
-                      <span className={checked ? "" : "text-zinc-600 line-through"}>{meta.label}</span>
-                    </label>
-                  );
-                })}
+              <div className="mt-3 rounded-xl border border-border/80 bg-black/15 p-2.5">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                    Event filters
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisibleEvents(
+                        visibleEvents.size === EVENT_ORDER.length ? new Set() : new Set(ALL_EVENTS)
+                      )
+                    }
+                    className="text-[9px] font-semibold text-accent-light transition-colors hover:text-white"
+                  >
+                    {visibleEvents.size === EVENT_ORDER.length ? "Clear all" : "Select all"}
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {EVENT_ORDER.map((type) => {
+                    const meta = EVENT_META[type];
+                    const checked = visibleEvents.has(type);
+                    const count = match?.events[type] ?? report?.events?.[type] ?? 0;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        aria-pressed={checked}
+                        onClick={() => toggleEvent(type)}
+                        className={`flex min-w-0 items-center gap-1.5 rounded-lg border px-2 py-1.5 text-left transition-all ${
+                          checked
+                            ? "border-white/10 bg-white/[0.05] text-zinc-200 hover:bg-white/[0.08]"
+                            : "border-transparent bg-white/[0.015] text-zinc-600 hover:border-white/5 hover:text-zinc-400"
+                        }`}
+                        title={`${meta.label}: ${formatNumber(count)} events`}
+                      >
+                        <MarkerGlyph type={type} size={11} />
+                        <span className="min-w-0 flex-1 truncate text-[9px]">{meta.short}</span>
+                        <span className="shrink-0 font-mono text-[8px] tabular-nums text-zinc-600">
+                          {formatCompact(count)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ) : null}
           </div>
@@ -714,6 +860,7 @@ export default function Dashboard() {
                 heatmapOpacity={heatmapOpacity}
                 showHumans={showHumans}
                 showBots={showBots}
+                showPositions={showPositions}
                 showPaths={showPaths}
                 showEvents={showEvents}
                 visibleEvents={visibleEvents}
@@ -864,24 +1011,43 @@ export default function Dashboard() {
                         <button
                           key={player.id}
                           type="button"
+                          aria-pressed={active}
                           onClick={() => focusPlayer(player)}
                           className={`flex w-full items-center gap-2 rounded-lg border px-2 py-1.5 text-left transition-colors ${
                             active
-                              ? "border-accent/50 bg-accent/15"
+                              ? player.isBot
+                                ? "border-amber-400/40 bg-amber-400/10"
+                                : "border-sky-400/40 bg-sky-400/10"
                               : "border-transparent bg-white/[0.02] hover:border-border hover:bg-white/[0.05]"
                           }`}
                         >
                           <span
-                            className="h-2 w-2 shrink-0 rounded-full"
-                            style={{ backgroundColor: player.isBot ? PLAYER_COLORS.bot : PLAYER_COLORS.human }}
-                          />
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border"
+                            style={{
+                              color: player.isBot ? PLAYER_COLORS.bot : PLAYER_COLORS.human,
+                              borderColor: `${player.isBot ? PLAYER_COLORS.bot : PLAYER_COLORS.human}35`,
+                              backgroundColor: `${player.isBot ? PLAYER_COLORS.bot : PLAYER_COLORS.human}12`,
+                            }}
+                          >
+                            {player.isBot ? <Bot className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+                          </span>
                           <span className="min-w-0 flex-1">
-                            <span className={`block truncate font-mono text-[11px] ${player.isBot ? "text-amber-300/90" : "text-sky-300/90"}`}>
-                              {player.isBot ? `bot ${player.id}` : shortId(player.id, 12)}
+                            <span className="flex items-center gap-1.5">
+                              <span className={`block min-w-0 truncate font-mono text-[11px] ${player.isBot ? "text-amber-200" : "text-sky-200"}`}>
+                                {player.isBot ? `Bot ${player.id}` : shortId(player.id, 12)}
+                              </span>
+                              <span
+                                className={`shrink-0 rounded px-1 py-0.5 text-[7px] font-bold uppercase tracking-wider ${
+                                  player.isBot
+                                    ? "bg-amber-400/10 text-amber-300/80"
+                                    : "bg-sky-400/10 text-sky-300/80"
+                                }`}
+                              >
+                                {player.isBot ? "BOT" : "HUMAN"}
+                              </span>
                             </span>
                             <span className="block text-[9px] text-zinc-600">
-                              {player.isBot ? "Bot" : "Human"} · {formatNumber(Math.round(player.distance))} units ·{" "}
-                              {player.path.length} samples
+                              {formatNumber(Math.round(player.distance))} units · {player.path.length} positions
                             </span>
                           </span>
                           <ChevronRight className="h-3 w-3 shrink-0 text-zinc-600" />
@@ -988,14 +1154,15 @@ export default function Dashboard() {
                   <p className="flex gap-2">
                     <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: PLAYER_COLORS.human }} />
                     <span>
-                      <strong className="text-zinc-300">Humans</strong> have UUID user ids. Their trails are solid and
-                      brighter than bot trails.
+                      <strong className="text-sky-200">Humans</strong> have UUID IDs, cyan circular markers, and solid
+                      trails.
                     </span>
                   </p>
                   <p className="flex gap-2">
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: PLAYER_COLORS.bot }} />
+                    <span className="mt-1 h-2 w-2 shrink-0 rotate-45 rounded-[1px] bg-amber-400" />
                     <span>
-                      <strong className="text-zinc-300">Bots</strong> have numeric user ids and thinner, dimmer trails.
+                      <strong className="text-amber-200">Bots</strong> have numeric IDs, amber diamond markers, and
+                      dashed trails.
                     </span>
                   </p>
                   <p className="flex gap-2">

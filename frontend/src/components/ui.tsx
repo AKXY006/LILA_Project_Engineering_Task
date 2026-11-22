@@ -25,37 +25,60 @@ export function Toggle({
   icon,
   checked,
   onChange,
+  accent = "var(--accent-light)",
 }: {
   label: string;
   hint?: string;
   icon?: ReactNode;
   checked: boolean;
   onChange: (value: boolean) => void;
+  accent?: string;
 }) {
   return (
-    <label className="group flex cursor-pointer items-center justify-between gap-3 py-1">
-      <span className="flex min-w-0 items-center gap-2 text-xs text-zinc-300">
-        {icon}
-        <span className="truncate">{label}</span>
-        {hint ? <span className="truncate text-[10px] text-zinc-600">{hint}</span> : null}
+    <div
+      className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2 transition-colors ${
+        checked
+          ? "border-white/10 bg-white/[0.045]"
+          : "border-transparent bg-black/10 opacity-70 hover:border-white/5 hover:opacity-100"
+      }`}
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        <span
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border"
+          style={{
+            color: checked ? accent : "#71717a",
+            borderColor: checked ? `color-mix(in srgb, ${accent} 25%, transparent)` : "rgba(255,255,255,0.06)",
+            backgroundColor: checked ? `color-mix(in srgb, ${accent} 7%, transparent)` : "rgba(255,255,255,0.025)",
+          }}
+        >
+          {icon}
+        </span>
+        <span className="min-w-0">
+          <span className={`block truncate text-[11px] font-medium ${checked ? "text-zinc-200" : "text-zinc-500"}`}>
+            {label}
+          </span>
+          {hint ? <span className="mt-0.5 block truncate text-[9px] text-zinc-600">{hint}</span> : null}
+        </span>
       </span>
       <button
         type="button"
         role="switch"
         aria-checked={checked}
-        aria-label={label}
+        aria-label={`${label} layer`}
         onClick={() => onChange(!checked)}
-        className={`relative h-4 w-8 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-accent" : "bg-zinc-700"
-        }`}
+        className="relative h-5 w-9 shrink-0 rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        style={{
+          borderColor: checked ? `${accent}90` : "rgba(255,255,255,0.12)",
+          backgroundColor: checked ? accent : "#27272a",
+        }}
       >
         <span
-          className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-4" : "translate-x-0.5"
+          className={`absolute top-0.5 h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+            checked ? "translate-x-[17px]" : "translate-x-0.5"
           }`}
         />
       </button>
-    </label>
+    </div>
   );
 }
 
